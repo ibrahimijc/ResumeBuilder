@@ -253,6 +253,39 @@ class Resume {
         
     }
 
+    addCertificaionAndHonors(bulletedHonors){
+        if (!bulletedHonors)
+            throw Error({message:"At least 1 Certification/Honor required"})
+        let localHonors = [];
+        let column = {
+            0:{ul:[]},
+            1:{ul:[]},
+            2:{ul:[]}
+        }
+        bulletedHonors.map((skill,index)=>{
+               column[index%3].ul.push(
+                    {text:'\n',listType:'none'},
+                    {text:skill,style:['general']}
+                )
+        })
+
+        localHonors.push(
+            {text:'\n\n'},
+            {text:'Certificaion And Honors',style:['general','header']},
+            {
+             columns:[
+                column[0],
+                column[1],
+                column[2],
+            ],
+            columnGap:20
+           }
+        )
+        this.docDefinition.content.push(
+            localHonors
+        )
+        
+    }
     // By default color set and optional param
     setStyles(color = 'blue') {
         this.docDefinition.styles = {
@@ -384,12 +417,20 @@ let skills = [
     'Communication' 
 ]
 
+let AwardsnHonors = [
+    `AWS Cloud Practitioner (2020-2023) Credential ID : JW0G5CT2NBE4QV5Y`,
+    `Winner Speed Debugging Competition DevDay19, FAST`,
+    `The Complete Course(Udemy)`,
+    `DEAN’s list honour Spring 2019`,
+    `Runners up at IdeaHatch19 (FYP)`
+]
 resume.addAbout(aboutMe);
 
 resume.addWorkHistory(workHistory);
 
 resume.addEducation(educationHistory);
 resume.addSkills(skills);
+resume.addCertificaionAndHonors(AwardsnHonors);
 resume.printResume({});
 
 

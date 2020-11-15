@@ -104,10 +104,16 @@ class Resume {
         this.docDefinition.content.push(localContent)
     }
 
+    /**
+     * 
+     * @param {*} workHistory 
+     * workHistory: Array of Object
+     * Object :{}
+     */
     addWorkHistory(workHistory){
         if (!workHistory)
             throw Error({message:'Work History is required'});
-
+        
         let localWorkHistory = [];
 
         localWorkHistory.push(
@@ -120,24 +126,37 @@ class Resume {
         
         // Seperatelet Work History in two columns. 
         let column1 = [], column2 = [];
-        
+        // Map the work history and push to specific colums
         workHistory.map((value,index)=>{
 
             let mappedDetails = [
-                // { text:value.CompanyName, style:['general'] }
+                {text:value.Position.Title, style:['general']},
+                {text:value.CompanyName, style:['general','sub-text']},
+                {text:`${value.Position.From} - ${value.Position.To}`, style:['general','sub-text']},
+                {text:'\n'},
+                {ul:value.Position.workDescription, style:['general','sub-text','description']},
+                {text:'\n'},
             ]
 
-            value.Positions.map((positionDetail)=>{
-                mappedDetails.push(
-                    {text:positionDetail.Title, style:['general']},
-                    {text:value.CompanyName, style:['general','sub-text']},
-                    {text:`${positionDetail.From} - ${positionDetail.To}`, style:['general','sub-text']},
-                    {text:'\n'},
-                    {ul:positionDetail.workDescription, style:['general','sub-text','description']},
-                    {text:'\n'},
-                )
-            })
+            // If in future need to change the layout of Work Experience
+            // column1.push(
+            //     {text:value.Position.Title, style:['general']},
+            //     {text:value.CompanyName, style:['general','sub-text']},
+            //     {text:`${value.Position.From} - ${value.Position.To}`, style:['general','sub-text']},
+            // )
 
+            // column2.push(
+            //     {text:'\n'},
+            //     {ul:value.Position.workDescription, style:['general','sub-text','description']},
+            //     {text:'\n'},
+            // )
+
+            /**
+             * For each work experience to be placed side by side
+             * First Experience left column
+             * Second Experience Right column
+             * And so on
+             */
             if (index %2 ==0){
                 column1.push(...mappedDetails)
             } else {
@@ -151,10 +170,87 @@ class Resume {
                     column1,
                     column2
                 ],
-                columnGap:10
+                columnGap:20,
+                // margin: [-2,-2,-2,-100]
             }
         )
         this.docDefinition.content.push(localWorkHistory);
+    }
+
+    addEducation(educationHistory){
+        if (!educationHistory)
+            throw Error({message:'Education History is required'});
+        
+        let localEducationHistory = [];
+
+        localEducationHistory.push(
+            {text:'Education',style:['general','header']}
+        )
+        // Seperatelet Education History in two columns. 
+        let column1 = [], column2 = [];
+        educationHistory.map((education,index)=>{
+
+            let mappedEducation = [
+                {text:'\n'},
+                {text:education.Institute,style:['general']},
+                {text:`${education.Degree}, Grade: ${education.Grade}`, style:['general','sub-text','description']},
+                {text:`${education.From} - ${education.To}`, style:['general','sub-text']},
+                {text:'\n'}
+            ]
+
+            if (index % 2 === 0){
+                column1.push(...mappedEducation)
+            } else {
+                column2.push(...mappedEducation);
+            }
+            
+        })
+
+        localEducationHistory.push(
+            {
+                columns:[
+                    column1,
+                    column2
+                ],
+                columnGap:20,
+                // margin: [-2,-2,-2,-100]
+            }
+        )
+
+        this.docDefinition.content.push(
+            localEducationHistory
+        )
+    }
+
+    addSkills(bulletedSkills){
+        if (!bulletedSkills)
+            throw Error({message:" Skills required "})
+        let localSkills = [];
+        let column = {
+            0:{ul:[]},
+            1:{ul:[]},
+            2:{ul:[]}
+        }
+        bulletedSkills.map((skill,index)=>{
+               column[index%3].ul.push(
+                    {text:skill,style:['general']}
+                )
+        })
+
+        localSkills.push(
+            {text:'Skills',style:['general','header']},
+            {
+             columns:[
+                column[0],
+                column[1],
+                column[2],
+            ]
+           }
+        )
+        this.docDefinition.content.push(
+            localSkills
+        )
+        
     }
 
     // By default color set and optional param
@@ -219,7 +315,7 @@ different technologies for solving real world problems.`;
 let workHistory = [
     {
         CompanyName:'Zaavya LLC',
-        Positions:[
+        Position:
             {
                 Title:'Junior Software Engineer',
                 From:'Dec,2019',
@@ -230,12 +326,12 @@ let workHistory = [
                     `I worked on Kibana Dashboard for creating visualization of the serverless system through the logs inserted in ElasticSearch. I visualized how many files were uploaded to the system, how many were successful and, the reason behind it. `
                 ]
             }
-        ],
+        ,
         
     },
     {   
         CompanyName:'Zaavya LLC',
-        Positions:[{
+        Position:{
             Title:'Software Engineer',
             From:'Mar,2019',
             To:'December,2020',
@@ -244,11 +340,11 @@ let workHistory = [
                 ,`Working on the serverless framework of Smart Data Platform, I re-wrote one of their lambda from python to node.js because of the performances issues we were having in our serverless framework. The purpose of the lambda was to take a json(data) from ElasticCache convert it into gremlin(query) and save it to neptune.`,
                 `I worked on Kibana Dashboard for creating visualization of the serverless system through the logs inserted in ElasticSearch. I visualized how many files were uploaded to the system, how many were successful and, the reason behind it. `
             ]
-        }]
+        }
     },
     {
         CompanyName:'Plan Z Creatives',
-        Positions:[
+        Position:
             {
                 Title:'Back-End Developer',
                 From:'May,2020',
@@ -258,15 +354,42 @@ let workHistory = [
                 `Created backend for Vyyral from scratch which is a Dashboard developed for Amazon Sellers using Node.js, MongoDB, lambda, SQS, and bull (Queue based on Redis)`,
                 ]
             }
-        ],
+        
         
     }
+]
+
+let educationHistory = [
+    {
+        Institute:"National University of Computer and Emerging Sciences",
+        From:"May,2015",
+        To:"Dec,2019",
+        Degree:"BS, CS",
+        Grade:"3.18"
+    },
+    {
+        Institute:"Bahria College",
+        From:"May,2013",
+        To:"May,2015",
+        Degree:"Pre Engineering",
+        Grade:"A"
+    },
+];
+
+let skills = [
+    'Node.js',
+    'MongoDb',
+    'javascript',
+    'express',
+    'Communication' 
 ]
 
 resume.addAbout(aboutMe);
 
 resume.addWorkHistory(workHistory);
 
+resume.addEducation(educationHistory);
+resume.addSkills(skills);
 resume.printResume({});
 
 

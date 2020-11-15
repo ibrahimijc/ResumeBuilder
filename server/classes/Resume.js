@@ -21,14 +21,21 @@ var printer = new PdfPrinter(fonts);
 
 
 
+
 class Resume {
 
-    constructor(PersonalDetails, Acheivments, Education, WorkHistory) {
-        console.log('created');;
-        this.PersonalDetails = PersonalDetails;
-        this.Acheivments = Acheivments;
-        this.Education = Education;
-        this.WorkHistory = WorkHistory;
+    constructor(params) {
+        const {
+            Name, Email,  Contact, educationHistory, workHistory,selfDescription, skills, AwardsnHonors
+        } = params
+        this.Email = Email;
+        this.Name = Name;
+        this.Contact = Contact;
+        this.educationHistory = educationHistory;
+        this.workHistory = workHistory;
+        this.skills = skills;
+        this.selfDescription = selfDescription;
+        this.AwardsnHonors = AwardsnHonors
 
         // This is the main document builder through which we will built whole pdf.
         this.docDefinition = {
@@ -38,15 +45,15 @@ class Resume {
             }
         };
     }
-
+    // Saves Resume to local file system
     printResume(includingSectionsWithPriority) {
         // console.log(JSON.stringify(this.docDefinition, null, ' '));
         const pdfDoc = printer.createPdfKitDocument(this.docDefinition, {});
-        pdfDoc.pipe(fs.createWriteStream('hahah'));
+        pdfDoc.pipe(fs.createWriteStream('name'));
         pdfDoc.end();
-        // console.log('here');
     }
 
+    // Adds peronal details and social links
     addHeader(Name, Contact, Email, Social) {
         let localContent = [];
         // these are the must required fields
@@ -81,7 +88,7 @@ class Resume {
         )
     }
 
-    // For the sub-headings to be inserted in length wise order bigger to smaller
+    // Comparer for the sub-headings to be inserted in length wise order bigger to smaller
     compareText( a, b ) {
         if ( a.text.length < b.text.length ){
           return 1;
@@ -91,7 +98,8 @@ class Resume {
         }
         return 0;
       }
-
+    
+    // Adds Introduction
     addAbout(personalStatement) {
         let localContent = [];
         if (!personalStatement)
@@ -122,7 +130,6 @@ class Resume {
             {text:'\n'}
         )
         
-        console.log(JSON.stringify(workHistory,null,' '));
         
         // Seperatelet Work History in two columns. 
         let column1 = [], column2 = [];
@@ -137,20 +144,6 @@ class Resume {
                 {ul:value.Position.workDescription, style:['general','sub-text','description']},
                 {text:'\n'},
             ]
-
-            // If in future need to change the layout of Work Experience
-            // column1.push(
-            //     {text:value.Position.Title, style:['general']},
-            //     {text:value.CompanyName, style:['general','sub-text']},
-            //     {text:`${value.Position.From} - ${value.Position.To}`, style:['general','sub-text']},
-            // )
-
-            // column2.push(
-            //     {text:'\n'},
-            //     {ul:value.Position.workDescription, style:['general','sub-text','description']},
-            //     {text:'\n'},
-            // )
-
             /**
              * For each work experience to be placed side by side
              * First Experience left column
@@ -174,6 +167,7 @@ class Resume {
                 // margin: [-2,-2,-2,-100]
             }
         )
+        // Fill the original object
         this.docDefinition.content.push(localWorkHistory);
     }
 
@@ -184,6 +178,7 @@ class Resume {
         let localEducationHistory = [];
 
         localEducationHistory.push(
+            {text:'\n'},
             {text:'Education',style:['general','header']}
         )
         // Seperatelet Education History in two columns. 
@@ -232,6 +227,7 @@ class Resume {
             2:{ul:[]}
         }
         bulletedSkills.map((skill,index)=>{
+               // Having three columns, push in each linewise
                column[index%3].ul.push(
                     {text:skill,style:['general']}
                 )
@@ -253,6 +249,7 @@ class Resume {
         
     }
 
+    // Certification and Honors Section
     addCertificaionAndHonors(bulletedHonors){
         if (!bulletedHonors)
             throw Error({message:"At least 1 Certification/Honor required"})
@@ -315,11 +312,48 @@ class Resume {
             
         }
     }
-
-    downloadPdf() {
+    // For sending pdf doc to client
+    async createPdfBinary(pdfDocs, callback) {
+        const pdfDoc = this.docDefinition;
+        // console.log(this.docDefinition);
+        return new Promise((resolve,reject)=>{
+        
+            let printer = new PdfPrinter(fonts);
+        
+            let doc = printer.createPdfKitDocument(pdfDoc);
+        
+            let chunks = [];
+            let result;
+            
+            doc.on('data', function (chunk) {
+                chunks.push(chunk);
+            });
+            doc.on('end', function () {
+                result = Buffer.concat(chunks);
+                resolve(result)
+            });
+            doc.end();
+        })
+       
+    
     }
 
-    sendDetails() {
+    // For dynamically setting the content in the pdf
+    setContentWithPreference(givenPreference){
+        // Header is must for all
+          let  preference  = givenPreference ? givenPreference : [
+                'addHeader',
+                'addAbout',
+                'addEducation',
+                'addWorkHistory',
+                'addSkills',
+                'addCertificaionAndHonors'
+            ];
+        preference.map((section)=>{
+            // Call a function with their params
+            let result =  this.getParams(section);
+            this[section](...result)
+        })
     }
 
     /**
@@ -327,111 +361,24 @@ class Resume {
      * 
      */
     getResume() {
+        return this;
     }
 
-    updateResume() {
+    // Returns the parameters for dynamic function calls
+    getParams(section){
+
+       const sectionParam = {
+            'addHeader' : [this.Name,this.Contact,this.Email,this.Social],
+            'addEducation':[this.educationHistory],
+            'addWorkHistory':[this.workHistory],
+            'addSkills':[this.skills],
+            'addAbout':[this.selfDescription],
+            'addCertificaionAndHonors':[this.AwardsnHonors]
+        }
+        return sectionParam[section]
     }
 
 }
-
-const resume = new Resume({}, {}, {}, {});
-// Set the generic styles and also add all the styles for  the resume. 
-resume.setStyles();
-resume.addHeader("Muhammad Ibrahim", "+92-3212603583", "ibrahimjawedijc@gmail.com", {
-    LinkedIn: 'http://linkedin.com/ibrahimijc',
-    github:'github.com/ibrahimijc'
-})
-aboutMe = `A Software Engineer with keen interest in backend architecture development. I take
-interest in designing architecture and database models for the applications leveraging
-different technologies for solving real world problems.`;
-
-let workHistory = [
-    {
-        CompanyName:'Zaavya LLC',
-        Position:
-            {
-                Title:'Junior Software Engineer',
-                From:'Dec,2019',
-                To:'Mar,2020',
-                workDescription:[
-                    `I made a shopify store for and added services/booking functionality in the shop by integrating shopify applications in the store.`
-                    ,`Working on the serverless framework of Smart Data Platform, I re-wrote one of their lambda from python to node.js because of the performances issues we were having in our serverless framework. The purpose of the lambda was to take a json(data) from ElasticCache convert it into gremlin(query) and save it to neptune.`,
-                    `I worked on Kibana Dashboard for creating visualization of the serverless system through the logs inserted in ElasticSearch. I visualized how many files were uploaded to the system, how many were successful and, the reason behind it. `
-                ]
-            }
-        ,
-        
-    },
-    {   
-        CompanyName:'Zaavya LLC',
-        Position:{
-            Title:'Software Engineer',
-            From:'Mar,2019',
-            To:'December,2020',
-            workDescription:[
-                `I made a shopify store for and added services/booking functionality in the shop by integrating shopify applications in the store.`
-                ,`Working on the serverless framework of Smart Data Platform, I re-wrote one of their lambda from python to node.js because of the performances issues we were having in our serverless framework. The purpose of the lambda was to take a json(data) from ElasticCache convert it into gremlin(query) and save it to neptune.`,
-                `I worked on Kibana Dashboard for creating visualization of the serverless system through the logs inserted in ElasticSearch. I visualized how many files were uploaded to the system, how many were successful and, the reason behind it. `
-            ]
-        }
-    },
-    {
-        CompanyName:'Plan Z Creatives',
-        Position:
-            {
-                Title:'Back-End Developer',
-                From:'May,2020',
-                To:'Present',
-                workDescription:[
-                `As a backend Engineer my duty is to Design backend Architecture and Modeling Data.`, 
-                `Created backend for Vyyral from scratch which is a Dashboard developed for Amazon Sellers using Node.js, MongoDB, lambda, SQS, and bull (Queue based on Redis)`,
-                ]
-            }
-        
-        
-    }
-]
-
-let educationHistory = [
-    {
-        Institute:"National University of Computer and Emerging Sciences",
-        From:"May,2015",
-        To:"Dec,2019",
-        Degree:"BS, CS",
-        Grade:"3.18"
-    },
-    {
-        Institute:"Bahria College",
-        From:"May,2013",
-        To:"May,2015",
-        Degree:"Pre Engineering",
-        Grade:"A"
-    },
-];
-
-let skills = [
-    'Node.js',
-    'MongoDb',
-    'javascript',
-    'express',
-    'Communication' 
-]
-
-let AwardsnHonors = [
-    `AWS Cloud Practitioner (2020-2023) Credential ID : JW0G5CT2NBE4QV5Y`,
-    `Winner Speed Debugging Competition DevDay19, FAST`,
-    `The Complete Course(Udemy)`,
-    `DEAN’s list honour Spring 2019`,
-    `Runners up at IdeaHatch19 (FYP)`
-]
-resume.addAbout(aboutMe);
-
-resume.addWorkHistory(workHistory);
-
-resume.addEducation(educationHistory);
-resume.addSkills(skills);
-resume.addCertificaionAndHonors(AwardsnHonors);
-resume.printResume({});
 
 
 

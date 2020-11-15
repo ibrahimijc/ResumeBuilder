@@ -26,21 +26,25 @@ router.get('/resume',async(req,res)=>{
 
 // Send the pdf in blob format if possible, else will have to serve the pdf's for download
 router.get('/print',async(req,res)=>{
-    const { email } = req.query;
+    const { email , preference } = req.query;
 
     if (!email)
         return res.status(400).send({success:false,message:'email required'});
     // Gets the Resume object after fetching from db and mapping to Resume class
+    try{
     const myResume = await getResume(email);
 
     if (!myResume)
         return res.status(404).send({success:false,message:'user does not exist'})
     myResume.setStyles();
-    myResume.setContentWithPreference()
+    myResume.setContentWithPreference(preference)
     // Creating binary stream
     let result= await myResume.createPdfBinary();
     res.contentType('application/pdf');
     res.send(result)
+    } catch(e){
+        res.status(500).send({success:false,message:e.message});
+    }
 });
 
 router.post('/skills',async(req,res)=>{

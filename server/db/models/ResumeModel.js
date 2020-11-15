@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const ResumeSchema = new mongoose.Schema({
-    
     Name:{
         type:String
     },
@@ -12,6 +11,7 @@ const ResumeSchema = new mongoose.Schema({
     Contact:{
         type:String
     },
+    Social:[String],
     selfDescription:{
         type:String
     },

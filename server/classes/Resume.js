@@ -26,7 +26,7 @@ class Resume {
 
     constructor(params) {
         const {
-            Name, Email,  Contact, educationHistory, workHistory,selfDescription, skills, AwardsnHonors
+            Name, Email,  Contact, educationHistory, workHistory,selfDescription, skills, AwardsnHonors, Social
         } = params
         this.Email = Email;
         this.Name = Name;
@@ -35,7 +35,8 @@ class Resume {
         this.workHistory = workHistory;
         this.skills = skills;
         this.selfDescription = selfDescription;
-        this.AwardsnHonors = AwardsnHonors
+        this.AwardsnHonors = AwardsnHonors;
+        this.Social = Social
 
         // This is the main document builder through which we will built whole pdf.
         this.docDefinition = {
@@ -68,7 +69,7 @@ class Resume {
         // If Social Details are given (Optional)
         if (Social) {
             // Map the links on local object
-           Object.values(Social).map(value=>{
+           Social.map(value=>{
                 localContent.push(
                     { text: value, link: value, style: ['sub-text', 'general'] }
                 )
@@ -340,15 +341,44 @@ class Resume {
 
     // For dynamically setting the content in the pdf
     setContentWithPreference(givenPreference){
-        // Header is must for all
-          let  preference  = givenPreference ? givenPreference : [
-                'addHeader',
+        let modifiedPreference = [];
+
+        let allowedPreference = [
+            'About',
+            'Education',
+            'Work',
+            'Skills',
+            'Certificate'
+        ]
+
+        // simplifying the name for the client
+        if (givenPreference)
+        givenPreference.map(value=>{
+            // Reject the Wrong Preference
+            if (!allowedPreference.includes(value))
+                throw Error('Wrong Preference and Header is by Default');
+            // Map simple values to function names
+            let mapToFunctionName = {
+                // 'Header':'addHeader',
+                'About': 'addAbout',
+                'Education': 'addEducation',
+                'Work': 'addWorkHistory',
+                'Skills': 'addSkills',
+                "Certificate":'addCertificaionAndHonors'
+            }
+            modifiedPreference.push(mapToFunctionName[value]);
+        })
+
+        // Header is must for all, If preference is give, replace it with modified else use default
+          let  preference  = givenPreference ? modifiedPreference : [
                 'addAbout',
                 'addEducation',
                 'addWorkHistory',
                 'addSkills',
                 'addCertificaionAndHonors'
             ];
+        // Header is by default
+        this.addHeader(this.Name,this.Contact,this.Email,this.Social);
         preference.map((section)=>{
             // Call a function with their params
             let result =  this.getParams(section);

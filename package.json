@@ -1,0 +1,21 @@
+{
+  "name": "ResumeBuilder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"cd server   && npm i && node index "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibrahimijc/ResumeBuilder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ibrahimijc/ResumeBuilder/issues"
+  },
+  "homepage": "https://github.com/ibrahimijc/ResumeBuilder#readme"
+}

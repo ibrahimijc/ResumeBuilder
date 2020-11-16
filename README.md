@@ -1,4 +1,22 @@
 # ResumeBuilder
+
+
+
+ This will generate resume with default layout
+https://resumebuilders.herokuapp.com/print?email=ibrahimsubs@gmail.com
+
+This will print with the preference provided by user, About, Skills Education
+https://resumebuilders.herokuapp.com/print?email=ibrahimsubs@gmail.com&preference[]=About&preference[]=Skills&preference[]=Education
+
+This will print with the preference provided by user, About, Skills Education and Certificate
+https://resumebuilders.herokuapp.com/print?email=ibrahimsubs@gmail.com&preference[]=About&preference[]=Skills&preference[]=Education&preference[]=Certificate
+
+This will print with the preference provided by user, About, Skills Education ,Certificate and Work
+https://resumebuilders.herokuapp.com/print?email=ibrahimsubs@gmail.com&preference[]=About&preference[]=Skills&preference[]=Education&preference[]=Certificate&preference[]=Work
+
+You can use the position of parameters for different outputs. 
+ 
+ 
  
  JSON Structure for POST /completeresume endpoint: 
  
